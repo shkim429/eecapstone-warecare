@@ -154,6 +154,15 @@ app.get('/api/weather', async(req, res) => {
 	}
 });
 
+app.get("/api/mqtt-test", (req, res) => {
+  try {
+    mqttClient.publish("esp32/test", "TLS_OK_TEST");
+    res.json({ success: true, message: "MQTT publish 성공 — TLS 연결 정상!" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
 console.log(`Server running on port ${PORT}`);
 });
