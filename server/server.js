@@ -6,7 +6,7 @@ import mqtt from "mqtt";
 
 import getBaseDateTime from './utils/timeNdate.js';
 import weatherMessageRouter from './weatherMessage.js';
-import dhtRouter from './dhtData.js';
+// import dhtRouter from './dhtData.js';
 import { saveDataToCache, getCacheData } from './weatherFailoverCache.js';
 
 dotenv.config();
