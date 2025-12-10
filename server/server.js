@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use('/api/weather-message', weatherMessageRouter); 
-app.use('/api/sensor', dhtRouter);
+// app.use('/api/sensor', dhtRouter);
 
 // MQTT 연결
 const mqttClient = mqtt.connect(

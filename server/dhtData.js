@@ -6,7 +6,7 @@ const router = express.Router();
 
 let latestSensorData = null;
 
-const mqttClient = mqtt.connect("mqtt://ost:1883");
+// const mqttClient = mqtt.connect("mqtt://ost:1883");
 
 mqttClient.on("connect", () => {
   console.log("MQTT connected.");
