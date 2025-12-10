@@ -6,11 +6,11 @@ const router = express.Router();
 
 let latestSensorData = null;
 
-const mqttClient = mqtt.connect("mqtt://localhost:1883");
+const mqttClient = mqtt.connect("mqtt://ost:1883");
 
 mqttClient.on("connect", () => {
   console.log("MQTT connected.");
-  mqttClient.subscribe("esp32/dht11", (err) => {
+  mqttClient.subscribe("esp32/`dht11", (err) => {
     if (!err) console.log("Subscribed to esp32/dht11");
   });
 });

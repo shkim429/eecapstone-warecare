@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import axios from 'axios';
 import cors from 'cors';
+import mqtt from "mqtt";
+
 import getBaseDateTime from './utils/timeNdate.js';
 import weatherMessageRouter from './weatherMessage.js';
 import dhtRouter from './dhtData.js';
@@ -18,6 +20,77 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/weather-message', weatherMessageRouter); 
 app.use('/api/sensor', dhtRouter);
+
+// MQTT 연결
+const mqttClient = mqtt.connect(
+  "wss://" + process.env.HIVEMQ_HOST + ":8884/mqtt",
+  {
+    username: process.env.HIVEMQ_USERNAME,
+    password: process.env.HIVEMQ_PASSWORD,
+    clientId: "NodeServerClient"
+  }
+);
+
+app.post("/api/warecare", (req, res) => {
+  const { command } = req.body;
+
+  if (!command)
+    return res.status(400).json({ error: "command 누락됨" });
+
+  mqttClient.publish("esp32/wareCareSystem", command);
+  console.log("[WARECARE CMD]", command);
+
+  res.json({ success: true });
+});
+
+app.post("/api/motor", (req, res) => {
+  const { command } = req.body;
+
+  if (!command)
+    return res.status(400).json({ error: "command 누락됨" });
+
+  mqttClient.publish("esp32/motor", command);
+  console.log("[MOTOR CMD]", command);
+
+  res.json({ success: true });
+});
+
+let currentPhase = "idle";
+
+mqttClient.on("connect", () => {
+  console.log("[MQTT] Connected to HiveMQ Cloud!");
+
+  // ESP32가 보내는 Phase 메시지 구독
+  mqttClient.subscribe("esp32/wareCareSystem/phase", (err) => {
+    if (!err) console.log("[MQTT] Phase topic subscribed");
+  });
+});
+
+// ESP32가 보내는 단계 정보 받기
+mqttClient.on("message", (topic, message) => {
+  if (topic === "esp32/wareCareSystem/phase") {
+    currentPhase = message.toString();
+    console.log("[MQTT] 현재 단계:", currentPhase);
+  }
+});
+
+// MQTT 명령 전달 API
+app.post("/api/mqtt/send", (req, res) => {
+  const { topic, cmd } = req.body;
+
+  if (!topic || !cmd)
+    return res.status(400).json({ error: "topic 또는 cmd 누락됨" });
+
+  mqttClient.publish(topic, cmd);
+  console.log(`[MQTT Publish] ${topic} → ${cmd}`);
+
+  res.json({ success: true });
+});
+
+// 현재 Phase 요청 응답
+app.get("/api/phase", (req, res) => {
+  res.json({ phase: currentPhase });
+});
 
 app.get('/api/weather', async(req, res) => {
 	const {base_date, base_time} = getBaseDateTime();
